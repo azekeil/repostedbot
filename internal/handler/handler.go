@@ -34,10 +34,11 @@ func MakeMessageCreateHandlerFunc(help self.DocFuncs) func(*discordgo.Session, *
 			// See if there's a function with the same name, if so, call it
 			var msg string
 			if _, ok := help[command]; ok {
-				args := make(map[string]interface{}, 0)
-				args["s"] = s
-				args["m"] = m
-				args["help"] = help
+				args := map[string]interface{}{
+					"s": s,
+					"m": m,
+					"help": help,
+				}
 				self.CallMethod(c, command, args)
 			} else {
 				msg = fmt.Sprintf("Could not find command `%s`. Try `!grec list`", all[1])
