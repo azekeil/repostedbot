@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"go/doc"
 	"log"
 	"os"
@@ -31,7 +30,10 @@ func getRootPath() string {
 func readConfig() *viper.Viper {
 	v := viper.New()
 	v.AddConfigPath(getRootPath())
-	v.ReadInConfig()
+	err := v.ReadInConfig()
+	if err != nil {
+		panic(err)
+	}
 	return v
 }
 
@@ -86,7 +88,7 @@ func main() {
 	}
 
 	// Wait here until CTRL-C or other term signal is received.
-	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
+	log.Println("Bot is now running.  Press CTRL-C to exit.")
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-sc
@@ -103,7 +105,7 @@ func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 		if channel.ID == event.Guild.ID {
 			_, err := s.ChannelMessageSend(channel.ID, "Hi! Use \"!grec\" to get started")
 			if err != nil {
-				fmt.Printf("could not send guild creation message: %s", err)
+				log.Printf("could not send guild creation message: %s", err)
 			}
 			log.Printf("Guild %s greeted", event.Name)
 			return

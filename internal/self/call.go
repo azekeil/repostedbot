@@ -1,10 +1,8 @@
 package self
 
-import (
-	"reflect"
-)
+import "reflect"
 
-func CallMethod(obj interface{}, fn string, args []interface{}) (res []reflect.Value) {
+func CallMethod(obj interface{}, fn string, args []interface{}) []reflect.Value {
 	method := reflect.ValueOf(obj).MethodByName(fn)
 	var inputs []reflect.Value
 	for _, v := range args {
