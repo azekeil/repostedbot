@@ -4,7 +4,7 @@ import (
 	"reflect"
 )
 
-func CallMethod(obj interface{}, fn string, args map[string]interface{}) (res []reflect.Value) {
+func CallMethod(obj interface{}, fn string, args []interface{}) (res []reflect.Value) {
 	method := reflect.ValueOf(obj).MethodByName(fn)
 	var inputs []reflect.Value
 	for _, v := range args {

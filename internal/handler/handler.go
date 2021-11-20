@@ -19,38 +19,34 @@ func MakeMessageCreateHandlerFunc(help self.DocFuncs) func(*discordgo.Session, *
 			return
 		}
 
-		// check if the message starts with "!grec"
-		if strings.HasPrefix(m.Content, "!grec") {
+		// Ignore any messages that don't start with "!grec"
+		if !strings.HasPrefix(m.Content, "!grec") {
+			return
+		}
 
-			all := strings.Split(m.Content, " ")
-			if len(all) < 2 {
-				c.Help(s, m, help)
-				return
-			}
+		all := strings.Fields(m.Content)
+		if len(all) < 2 {
+			c.Help(s, m, help)
+			return
+		}
 
-			// OK, we know there must be a command..
-			command := strings.Title(all[1])
+		// OK, we know there must be a command..
+		command := strings.Title(all[1])
 
-			// See if there's a function with the same name, if so, call it
-			var msg string
-			if _, ok := help[command]; ok {
-				args := map[string]interface{}{
-					"s": s,
-					"m": m,
-					"help": help,
-				}
-				self.CallMethod(c, command, args)
-			} else {
-				msg = fmt.Sprintf("Could not find command `%s`. Try `!grec list`", all[1])
-			}
+		// See if there's a function with the same name, if so, call it
+		var msg string
+		if _, ok := help[command]; ok {
+			self.CallMethod(c, command, []interface{}{s, m, help})
+		} else {
+			msg = fmt.Sprintf("Could not find command `%s`. Try `!grec list`", all[1])
+		}
 
-			// Send message if defined
-			if msg != "" {
-				actions.SendEmbed(s, m.ChannelID, &discordgo.MessageEmbed{
-					Color:       0x1c1c1c,
-					Description: msg,
-				})
-			}
+		// Send message if defined
+		if msg != "" {
+			actions.SendEmbed(s, m.ChannelID, &discordgo.MessageEmbed{
+				Color:       0x1c1c1c,
+				Description: msg,
+			})
 		}
 	}
 }
