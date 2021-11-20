@@ -22,3 +22,15 @@ func (f DocFuncs) AllSummaries() []string {
 	}
 	return s
 }
+
+// Exists does a case-insensitive comparison on the function names
+// and returns the correctly-capitalised name if present
+func (f DocFuncs) Exists(name string) string {
+	lname := strings.ToLower(name)
+	for _, k := range f {
+		if lname == strings.ToLower(k.Name) {
+			return k.Name
+		}
+	}
+	return ""
+}

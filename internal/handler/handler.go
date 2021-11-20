@@ -12,6 +12,7 @@ import (
 
 func MakeMessageCreateHandlerFunc(help self.DocFuncs) func(*discordgo.Session, *discordgo.MessageCreate) {
 	c := new(commands.Command)
+	cmdNotFoundFmtStr := "Could not find command `%s`. Try `!grec list`"
 	return func(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		// Ignore all messages created by the bot itself
@@ -31,14 +32,19 @@ func MakeMessageCreateHandlerFunc(help self.DocFuncs) func(*discordgo.Session, *
 		}
 
 		// OK, we know there must be a command..
-		command := strings.Title(all[1])
-
 		// See if there's a function with the same name, if so, call it
 		var msg string
-		if _, ok := help[command]; ok {
+		// Special case for the 'help <x>' function
+		if all[1] == "help" && len(all) > 2 {
+			if cmdhelp := help.Exists(all[2]); cmdhelp != "" {
+				msg = help.CommandHelp(cmdhelp)
+			} else {
+				msg = fmt.Sprintf(cmdNotFoundFmtStr, all[2])
+			}
+		} else if command := help.Exists(all[1]); command != "" {
 			self.CallMethod(c, command, []interface{}{s, m, help})
 		} else {
-			msg = fmt.Sprintf("Could not find command `%s`. Try `!grec list`", all[1])
+			msg = fmt.Sprintf(cmdNotFoundFmtStr, all[1])
 		}
 
 		// Send message if defined
