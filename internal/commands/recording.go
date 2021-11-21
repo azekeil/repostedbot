@@ -29,14 +29,14 @@ func (c *Command) RecordHere(s *discordgo.Session, m *discordgo.MessageCreate, h
 	// Find the channel that the message came from.
 	ch, err := s.State.Channel(m.ChannelID)
 	if err != nil {
-		// Could not find channel.
+		log.Println("error: could not find channel")
 		return
 	}
 
 	// Find the guild for that channel.
 	g, err := s.State.Guild(ch.GuildID)
 	if err != nil {
-		// Could not find guild.
+		log.Println("error: could not find guild")
 		return
 	}
 
@@ -68,6 +68,7 @@ func (c *Command) RecordHere(s *discordgo.Session, m *discordgo.MessageCreate, h
 			return
 		}
 	}
+	log.Println("error: could not find user in voice channel")
 }
 
 // recordstop: stop any ongoing recording
@@ -88,6 +89,7 @@ func (c *Command) RecordStop(s *discordgo.Session, m *discordgo.MessageCreate, h
 			log.Println("Error leaving voice channel: ", err)
 		}
 		log.Printf("finished recording: %s elapsed", time.Since(r.StartTime))
+		delete(ActiveRecordings, m.Author.ID)
 	} else {
 		log.Println("error: user has no active recording")
 		return

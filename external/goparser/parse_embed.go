@@ -1,3 +1,8 @@
+// This is literally a copy of go/parser.ParseDir with minimal changes to 
+// allow it to support EmbedFS directly. I imagine this wouldn't be accepted
+// back into base go as it depends on embed which was only introduced in 1.16.
+// Also no tests as yet.
+//
 package goparser
 
 import (

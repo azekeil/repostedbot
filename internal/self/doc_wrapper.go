@@ -6,21 +6,9 @@ import (
 	"go/parser"
 	"go/token"
 
+	"github.com/alex-broad/grec/external/goparser"
 	"github.com/alex-broad/grec/internal"
-	"github.com/alex-broad/grec/internal/goparser"
 )
-
-// parseDir assumes access to the source code
-func parseDir(path string) (map[string]*ast.Package, error) {
-	fset := token.NewFileSet() // positions are relative to fset
-
-	d, err := parser.ParseDir(fset, path, nil, parser.ParseComments)
-	if err != nil {
-		return nil, err
-	}
-
-	return d, nil
-}
 
 // parseEmbeds parses source files from an embed
 func parseEmbeds(path string) (map[string]*ast.Package, error) {
