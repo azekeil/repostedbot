@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/alex-broad/grec/internal/actions"
 	"github.com/alex-broad/grec/internal/config"
 	"github.com/alex-broad/grec/internal/handler"
 	"github.com/alex-broad/grec/internal/self"
@@ -28,10 +29,10 @@ func main() {
 
 	bot.Identify.Intents = discordgo.IntentsAllWithoutPrivileged
 
-	// Register messageCreate as a callback for the messageCreate events.
+	// Register callback for the messageCreate events.
 	bot.AddHandler(handler.MakeMessageCreateHandlerFunc(help))
 
-	// Register guildCreate as a callback for the guildCreate events.
+	// Register callback for the guildCreate events.
 	bot.AddHandler(handler.GuildCreate)
 
 	// Open websocket after registering
@@ -45,4 +46,9 @@ func main() {
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-sc
+
+	log.Println("Caught signal! Stopping all recordings...")
+	actions.StopAllRecordings(bot)
+	log.Println("Closing connection...")
+	bot.Close()
 }

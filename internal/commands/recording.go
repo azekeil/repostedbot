@@ -1,25 +1,16 @@
 package commands
 
 import (
+	"fmt"
 	"log"
 	"time"
 
+	"github.com/alex-broad/grec/internal/actions"
 	"github.com/alex-broad/grec/internal/self"
-	"github.com/alex-broad/grec/internal/voice"
 	"github.com/bwmarrin/discordgo"
 )
 
-type ActiveRecording struct {
-	User            *discordgo.User
-	Guild           *discordgo.Guild
-	VoiceState      *discordgo.VoiceState
-	VoiceConnection *discordgo.VoiceConnection
-	StartTime       time.Time
-}
-
-var ActiveRecordings = make(map[string]*ActiveRecording, 0)
-
-// recordhere: join the voice channel you are in and start recording
+// recordhere: join your voice channel and start recording
 //
 // This will attempt to save an autonamed file in the configured location
 // Any errors will be fed back to the user
@@ -29,14 +20,14 @@ func (c *Command) RecordHere(s *discordgo.Session, m *discordgo.MessageCreate, h
 	// Find the channel that the message came from.
 	ch, err := s.State.Channel(m.ChannelID)
 	if err != nil {
-		log.Println("error: could not find channel")
+		log.Println("error: could not find channel: ", err)
 		return
 	}
 
 	// Find the guild for that channel.
 	g, err := s.State.Guild(ch.GuildID)
 	if err != nil {
-		log.Println("error: could not find guild")
+		log.Println("error: could not find guild: ", err)
 		return
 	}
 
@@ -45,30 +36,31 @@ func (c *Command) RecordHere(s *discordgo.Session, m *discordgo.MessageCreate, h
 		if vs.UserID == m.Author.ID {
 
 			// Check they don't already have an active recording
-			if _, ok := ActiveRecordings[m.Author.ID]; ok {
-				log.Println("error: user already has active recording")
+			if _, ok := actions.ActiveRecordings[m.Author.ID]; ok {
+				actions.SendEmbed(s, ch.ID, actions.NewErrorEmbed(
+					"Error: You already have an active recording!\nStop it first with `!grec recordstop`",
+				))
 				return
 			}
 
 			// OK, join the voice channel and start recording
 			v, err := s.ChannelVoiceJoin(g.ID, vs.ChannelID, true, false)
 			if err != nil {
-				log.Println("Error joining voice channel: ", err)
+				msg := fmt.Sprint("Error joining voice channel: ", err)
+				log.Println(msg)
+				actions.SendEmbed(s, ch.ID, actions.NewErrorEmbed(msg))
+				return
 			}
 
-			ActiveRecordings[m.Author.ID] = &ActiveRecording{
-				User:            m.Author,
-				Guild:           g,
-				VoiceState:      vs,
-				VoiceConnection: v,
-				StartTime:       time.Now(),
-			}
-			go voice.HandleVoice(v.OpusRecv)
-			log.Println("started recording")
+			actions.StartRecording(s, m, g, vs, v)
+			actions.SendEmbed(s, ch.ID, actions.NewEmbed("OK, Recording started!"))
 			return
 		}
 	}
-	log.Println("error: could not find user in voice channel")
+	log.Printf("error: could not find user %s in voice channel", m.Author.ID)
+	actions.SendEmbed(s, ch.ID, actions.NewErrorEmbed(
+		"Error: Can't find you in a voice channel.\nPlease ensure you are in a voice channel before starting recording!",
+	))
 }
 
 // recordstop: stop any ongoing recording
@@ -80,18 +72,16 @@ func (c *Command) RecordHere(s *discordgo.Session, m *discordgo.MessageCreate, h
 func (c *Command) RecordStop(s *discordgo.Session, m *discordgo.MessageCreate, help self.DocFuncs) {
 
 	// See if we have an active recording for this user
-	if r, ok := ActiveRecordings[m.Author.ID]; ok {
-		close(r.VoiceConnection.OpusRecv)
-		r.VoiceConnection.Close()
-		// This was not obvious :(
-		err := s.ChannelVoiceJoinManual(r.Guild.ID,"",true, false)
-		if err != nil {
-			log.Println("Error leaving voice channel: ", err)
-		}
-		log.Printf("finished recording: %s elapsed", time.Since(r.StartTime))
-		delete(ActiveRecordings, m.Author.ID)
+	if r, ok := actions.ActiveRecordings[m.Author.ID]; ok {
+		msg := fmt.Sprintf("finished recording: %s elapsed", time.Since(r.StartTime))
+		actions.StopRecording(s, m.Author.ID)
+		log.Println(msg)
+		actions.SendEmbed(s, m.ChannelID, actions.NewEmbed(msg))
 	} else {
-		log.Println("error: user has no active recording")
+		log.Printf("error: user %s has no active recording", m.Author.ID)
+		actions.SendEmbed(s, m.ChannelID, actions.NewErrorEmbed(
+			"Error: You have no active recordings!\nStart one with `!grec recordhere`",
+		))
 		return
 	}
 }

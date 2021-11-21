@@ -44,9 +44,6 @@ func getDocMethods(p *doc.Package, typeName string) DocFuncs {
 }
 
 func MakeHelp(path, pkg, typ string) map[string]*doc.Func {
-	// relpath := filepath.Join(utils.GetRootPath(), path)
-
-	// d, err := parseDir(relpath)
 	d, err := parseEmbeds(path)
 	if err != nil {
 		panic(err)

@@ -2,6 +2,7 @@ package self
 
 import (
 	"go/doc"
+	"sort"
 	"strings"
 )
 
@@ -20,6 +21,7 @@ func (f DocFuncs) AllSummaries() []string {
 	for k := range f {
 		s = append(s, f.Summary(k))
 	}
+	sort.Strings(s)
 	return s
 }
 
