@@ -3,6 +3,7 @@ package voice
 import (
 	"fmt"
 	"log"
+	"path/filepath"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/pion/rtp"
@@ -24,13 +25,13 @@ func createPionRTPPacket(p *discordgo.Packet) *rtp.Packet {
 	}
 }
 
-func HandleVoice(c chan *discordgo.Packet) {
+func HandleVoice(c chan *discordgo.Packet, path string) {
 	files := make(map[uint32]media.Writer)
 	for p := range c {
 		file, ok := files[p.SSRC]
 		if !ok {
 			var err error
-			file, err = oggwriter.New(fmt.Sprintf("%d.ogg", p.SSRC), 48000, 2)
+			file, err = oggwriter.New(filepath.Join(path, fmt.Sprintf("%d.ogg", p.SSRC)), 48000, 2)
 			if err != nil {
 				log.Printf("failed to create file %d.ogg, giving up on recording: %v", p.SSRC, err)
 				return

@@ -38,13 +38,13 @@ func MakeMessageCreateHandlerFunc(help self.DocFuncs) func(*discordgo.Session, *
 		msgErr := false
 		// Special case for the 'help <x>' function
 		if all[1] == "help" && len(all) > 2 {
-			if cmdhelp := help.Exists(all[2]); cmdhelp != "" {
+			if cmdhelp := help.Capitalise(all[2]); cmdhelp != "" {
 				msg = help.CommandHelp(cmdhelp)
 			} else {
 				msg = fmt.Sprintf(cmdNotFoundFmtStr, all[2])
 				msgErr = true
 			}
-		} else if command := help.Exists(all[1]); command != "" {
+		} else if command := help.Capitalise(all[1]); command != "" {
 			self.CallMethod(c, command, []interface{}{s, m, help})
 		} else {
 			msg = fmt.Sprintf(cmdNotFoundFmtStr, all[1])

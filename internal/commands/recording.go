@@ -20,14 +20,14 @@ func (c *Command) RecordHere(s *discordgo.Session, m *discordgo.MessageCreate, h
 	// Find the channel that the message came from.
 	ch, err := s.State.Channel(m.ChannelID)
 	if err != nil {
-		log.Println("error: could not find channel: ", err)
+		log.Println("error: could not find channel:", err)
 		return
 	}
 
 	// Find the guild for that channel.
 	g, err := s.State.Guild(ch.GuildID)
 	if err != nil {
-		log.Println("error: could not find guild: ", err)
+		log.Println("error: could not find guild:", err)
 		return
 	}
 

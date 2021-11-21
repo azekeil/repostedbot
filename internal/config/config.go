@@ -12,11 +12,11 @@ func ReadConfig() *viper.Viper {
 	v := viper.New()
 	cwd, err := os.Getwd()
 	if err != nil {
-		log.Println("unable to get working directory: ", err)
+		log.Println("unable to get working directory:", err)
 	}
 	homedir, err := os.UserHomeDir()
 	if err != nil {
-		log.Println("unable to get working directory: ", err)
+		log.Println("unable to get user's home directory:", err)
 	}
 	v.AddConfigPath(cwd)
 	v.AddConfigPath(filepath.Join(homedir, "/.config/grec"))
