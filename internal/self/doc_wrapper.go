@@ -5,9 +5,13 @@ import (
 	"go/doc"
 	"go/parser"
 	"go/token"
+
+	"github.com/alex-broad/grec/internal"
+	"github.com/alex-broad/grec/internal/goparser"
 )
 
-func ParseDir(path string) (map[string]*ast.Package, error) {
+// parseDir assumes access to the source code
+func parseDir(path string) (map[string]*ast.Package, error) {
 	fset := token.NewFileSet() // positions are relative to fset
 
 	d, err := parser.ParseDir(fset, path, nil, parser.ParseComments)
@@ -18,7 +22,19 @@ func ParseDir(path string) (map[string]*ast.Package, error) {
 	return d, nil
 }
 
-func GetDocPackage(d map[string]*ast.Package, name string) *doc.Package {
+// parseEmbeds parses source files from an embed
+func parseEmbeds(path string) (map[string]*ast.Package, error) {
+	fset := token.NewFileSet() // positions are relative to fset
+
+	d, err := goparser.ParseEmbedFSDir(fset, path, internal.CommandsEmbedFS, nil, parser.ParseComments)
+	if err != nil {
+		return nil, err
+	}
+
+	return d, nil
+}
+
+func getDocPackage(d map[string]*ast.Package, name string) *doc.Package {
 	for k, f := range d {
 		if k == name {
 			return doc.New(f, "./", 0)
@@ -27,7 +43,7 @@ func GetDocPackage(d map[string]*ast.Package, name string) *doc.Package {
 	return nil
 }
 
-func GetDocMethods(p *doc.Package, typeName string) DocFuncs {
+func getDocMethods(p *doc.Package, typeName string) DocFuncs {
 	s := make(map[string]*doc.Func, len(p.Types))
 	for _, t := range p.Types {
 		if t.Name == typeName {
@@ -37,4 +53,15 @@ func GetDocMethods(p *doc.Package, typeName string) DocFuncs {
 		}
 	}
 	return DocFuncs(s)
+}
+
+func MakeHelp(path, pkg, typ string) map[string]*doc.Func {
+	// relpath := filepath.Join(utils.GetRootPath(), path)
+
+	// d, err := parseDir(relpath)
+	d, err := parseEmbeds(path)
+	if err != nil {
+		panic(err)
+	}
+	return getDocMethods(getDocPackage(d, pkg), typ)
 }

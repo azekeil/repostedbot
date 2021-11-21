@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/alex-broad/grec/internal/actions"
@@ -53,6 +54,25 @@ func MakeMessageCreateHandlerFunc(help self.DocFuncs) func(*discordgo.Session, *
 				Color:       0x1c1c1c,
 				Description: msg,
 			})
+		}
+	}
+}
+
+// This function will be called (due to AddHandler above) every time a new
+// guild is joined.
+func GuildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
+	if event.Guild.Unavailable {
+		return
+	}
+
+	for _, channel := range event.Guild.Channels {
+		if channel.ID == event.Guild.ID {
+			_, err := s.ChannelMessageSend(channel.ID, "Hi! Use \"!grec\" to get started")
+			if err != nil {
+				log.Printf("could not send guild creation message: %s", err)
+			}
+			log.Printf("Guild %s greeted", event.Name)
+			return
 		}
 	}
 }

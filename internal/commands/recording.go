@@ -17,7 +17,7 @@ type ActiveRecording struct {
 	StartTime       time.Time
 }
 
-var ActiveRecordings map[string]*ActiveRecording
+var ActiveRecordings = make(map[string]*ActiveRecording, 0)
 
 // recordhere: join the voice channel you are in and start recording
 //
@@ -82,6 +82,11 @@ func (c *Command) RecordStop(s *discordgo.Session, m *discordgo.MessageCreate, h
 	if r, ok := ActiveRecordings[m.Author.ID]; ok {
 		close(r.VoiceConnection.OpusRecv)
 		r.VoiceConnection.Close()
+		// This was not obvious :(
+		err := s.ChannelVoiceJoinManual(r.Guild.ID,"",true, false)
+		if err != nil {
+			log.Println("Error leaving voice channel: ", err)
+		}
 		log.Printf("finished recording: %s elapsed", time.Since(r.StartTime))
 	} else {
 		log.Println("error: user has no active recording")
