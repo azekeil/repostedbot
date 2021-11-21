@@ -17,18 +17,12 @@ type Command struct{}
 // To see help for a specific command, type `!grec help <command>`
 func (c *Command) Help(s *discordgo.Session, m *discordgo.MessageCreate, help self.DocFuncs) {
 	// Send this function comment as help text
-	actions.SendEmbed(s, m.ChannelID, &discordgo.MessageEmbed{
-		Color:       0x1c1c1c,
-		Description: help.CommandHelp("Help"),
-	})
+	actions.SendEmbed(s, m.ChannelID, actions.NewEmbed(help.CommandHelp("Help")))
 }
 
 // list: lists available commands with summaries
 func (c *Command) List(s *discordgo.Session, m *discordgo.MessageCreate, help self.DocFuncs) {
 	// Send all summaries as an embed
 	pretty := columnize.Format(help.AllSummaries(), &columnize.Config{Delim: ":"})
-	actions.SendEmbed(s, m.ChannelID, &discordgo.MessageEmbed{
-		Color:       0x1c1c1c,
-		Description: fmt.Sprintf("```%s```", pretty),
-	})
+	actions.SendEmbed(s, m.ChannelID, actions.NewEmbed(fmt.Sprintf("```%s```", pretty)))
 }

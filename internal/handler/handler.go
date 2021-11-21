@@ -34,31 +34,35 @@ func MakeMessageCreateHandlerFunc(help self.DocFuncs) func(*discordgo.Session, *
 
 		// OK, we know there must be a command..
 		// See if there's a function with the same name, if so, call it
-		var msg string
+		msg := ""
+		msgErr := false
 		// Special case for the 'help <x>' function
 		if all[1] == "help" && len(all) > 2 {
 			if cmdhelp := help.Exists(all[2]); cmdhelp != "" {
 				msg = help.CommandHelp(cmdhelp)
 			} else {
 				msg = fmt.Sprintf(cmdNotFoundFmtStr, all[2])
+				msgErr = true
 			}
 		} else if command := help.Exists(all[1]); command != "" {
 			self.CallMethod(c, command, []interface{}{s, m, help})
 		} else {
 			msg = fmt.Sprintf(cmdNotFoundFmtStr, all[1])
+			msgErr = true
 		}
 
 		// Send message if defined
 		if msg != "" {
-			actions.SendEmbed(s, m.ChannelID, &discordgo.MessageEmbed{
-				Color:       0x1c1c1c,
-				Description: msg,
-			})
+			fn := actions.NewEmbed
+			if msgErr {
+				fn = actions.NewErrorEmbed
+			}
+			actions.SendEmbed(s, m.ChannelID, fn(msg))
 		}
 	}
 }
 
-// This function will be called (due to AddHandler above) every time a new
+// This function will be called (due to AddHandler in main) every time a new
 // guild is joined.
 func GuildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 	if event.Guild.Unavailable {
