@@ -2,6 +2,8 @@
 
 A self-hosted discord bot written in go to efficiently record voice channels directly to your computer.
 
+Mostly cribbed from examples but some interesting things including parsing help from method comments at runtime using `embed`.
+
 ## Setup
 
 1. `go install github.com/alex-broad/grec/cmd/grec` (needs at least go 1.16 for `embed`)
