@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/alex-broad/grec/internal/actions"
+	"github.com/alex-broad/grec/internal/bot"
 	"github.com/alex-broad/grec/internal/config"
 	"github.com/alex-broad/grec/internal/handler"
 	"github.com/alex-broad/grec/internal/self"
@@ -21,22 +21,22 @@ func main() {
 	// Setup help
 	help := self.MakeHelp("commands", "commands", "Command")
 
-	bot, err := discordgo.New("Bot " + config.Token)
+	session, err := discordgo.New("Bot " + config.Token)
 	if err != nil {
 		panic(err)
 	}
-	defer bot.Close()
+	defer session.Close()
 
-	bot.Identify.Intents = discordgo.IntentsAllWithoutPrivileged
+	session.Identify.Intents = discordgo.IntentsAllWithoutPrivileged
 
 	// Register callback for the messageCreate events.
-	bot.AddHandler(handler.MakeMessageCreateHandlerFunc(help))
+	session.AddHandler(handler.MakeMessageCreateHandlerFunc(help))
 
 	// Register callback for the guildCreate events.
-	bot.AddHandler(handler.GuildCreate)
+	session.AddHandler(handler.GuildCreate)
 
 	// Open websocket after registering
-	err = bot.Open()
+	err = session.Open()
 	if err != nil {
 		panic(err)
 	}
@@ -48,7 +48,7 @@ func main() {
 	<-sc
 
 	log.Println("Caught signal! Stopping all recordings...")
-	actions.StopAllRecordings(bot)
+	bot.StopAllRecordings(session)
 	log.Println("Closing connection...")
-	bot.Close()
+	session.Close()
 }

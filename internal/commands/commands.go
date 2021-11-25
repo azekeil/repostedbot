@@ -3,7 +3,7 @@ package commands
 import (
 	"strings"
 
-	"github.com/alex-broad/grec/internal/actions"
+	"github.com/alex-broad/grec/internal/bot"
 	"github.com/alex-broad/grec/internal/self"
 	"github.com/bwmarrin/discordgo"
 )
@@ -16,7 +16,7 @@ type Command struct{}
 // To see help for a specific command, type `!grec help <command>`
 func (c *Command) Help(s *discordgo.Session, m *discordgo.MessageCreate, help self.DocFuncs) {
 	// Send this function comment as help text
-	actions.SendEmbed(s, m.ChannelID, actions.NewEmbed(help.CommandHelp("Help")))
+	bot.SendEmbed(s, m.ChannelID, bot.NewEmbed(help.CommandHelp("Help")))
 }
 
 // list: lists available commands with summaries
@@ -28,7 +28,7 @@ func (c *Command) List(s *discordgo.Session, m *discordgo.MessageCreate, help se
 		cmd += sp[0] + "\n"
 		sum += sp[1] + "\n"
 	}
-	msg := actions.NewEmbed("")
+	msg := bot.NewEmbed("")
 	msg.Fields = []*discordgo.MessageEmbedField{
 		{
 			Name:   "Command",
@@ -41,5 +41,5 @@ func (c *Command) List(s *discordgo.Session, m *discordgo.MessageCreate, help se
 			Inline: true,
 		},
 	}
-	actions.SendEmbed(s, m.ChannelID, msg)
+	bot.SendEmbed(s, m.ChannelID, msg)
 }

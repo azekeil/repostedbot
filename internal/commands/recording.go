@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/alex-broad/grec/internal/actions"
+	"github.com/alex-broad/grec/internal/bot"
 	"github.com/alex-broad/grec/internal/self"
 	"github.com/bwmarrin/discordgo"
 )
@@ -36,8 +36,8 @@ func (c *Command) RecordHere(s *discordgo.Session, m *discordgo.MessageCreate, h
 		if vs.UserID == m.Author.ID {
 
 			// Check they don't already have an active recording
-			if _, ok := actions.ActiveRecordings[m.Author.ID]; ok {
-				actions.SendEmbed(s, ch.ID, actions.NewErrorEmbed(
+			if _, ok := bot.ActiveRecordings[m.Author.ID]; ok {
+				bot.SendEmbed(s, ch.ID, bot.NewErrorEmbed(
 					"Error: You already have an active recording!\nStop it first with `!grec recordstop`",
 				))
 				return
@@ -48,17 +48,17 @@ func (c *Command) RecordHere(s *discordgo.Session, m *discordgo.MessageCreate, h
 			if err != nil {
 				msg := fmt.Sprint("Error joining voice channel: ", err)
 				log.Println(msg)
-				actions.SendEmbed(s, ch.ID, actions.NewErrorEmbed(msg))
+				bot.SendEmbed(s, ch.ID, bot.NewErrorEmbed(msg))
 				return
 			}
 
-			actions.StartRecording(s, m, g, vs, v)
-			actions.SendEmbed(s, ch.ID, actions.NewEmbed("OK, Recording started!"))
+			bot.StartRecording(s, m, g, vs, v)
+			bot.SendEmbed(s, ch.ID, bot.NewEmbed("OK, Recording started!"))
 			return
 		}
 	}
 	log.Printf("error: could not find user %s in voice channel", m.Author.ID)
-	actions.SendEmbed(s, ch.ID, actions.NewErrorEmbed(
+	bot.SendEmbed(s, ch.ID, bot.NewErrorEmbed(
 		"Error: Can't find you in a voice channel.\nPlease ensure you are in a voice channel before starting recording!",
 	))
 }
@@ -72,14 +72,14 @@ func (c *Command) RecordHere(s *discordgo.Session, m *discordgo.MessageCreate, h
 func (c *Command) RecordStop(s *discordgo.Session, m *discordgo.MessageCreate, help self.DocFuncs) {
 
 	// See if we have an active recording for this user
-	if r, ok := actions.ActiveRecordings[m.Author.ID]; ok {
+	if r, ok := bot.ActiveRecordings[m.Author.ID]; ok {
 		msg := fmt.Sprintf("finished recording: %s elapsed", time.Since(r.StartTime))
-		actions.StopRecording(s, m.Author.ID)
+		bot.StopRecording(s, m.Author.ID)
 		log.Println(msg)
-		actions.SendEmbed(s, m.ChannelID, actions.NewEmbed(msg))
+		bot.SendEmbed(s, m.ChannelID, bot.NewEmbed(msg))
 	} else {
 		log.Printf("error: user %s has no active recording", m.Author.ID)
-		actions.SendEmbed(s, m.ChannelID, actions.NewErrorEmbed(
+		bot.SendEmbed(s, m.ChannelID, bot.NewErrorEmbed(
 			"Error: You have no active recordings!\nStart one with `!grec recordhere`",
 		))
 		return

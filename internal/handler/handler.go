@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/alex-broad/grec/internal/actions"
+	"github.com/alex-broad/grec/internal/bot"
 	"github.com/alex-broad/grec/internal/commands"
 	"github.com/alex-broad/grec/internal/self"
 	"github.com/bwmarrin/discordgo"
@@ -53,11 +53,11 @@ func MakeMessageCreateHandlerFunc(help self.DocFuncs) func(*discordgo.Session, *
 
 		// Send message if defined
 		if msg != "" {
-			fn := actions.NewEmbed
+			fn := bot.NewEmbed
 			if msgErr {
-				fn = actions.NewErrorEmbed
+				fn = bot.NewErrorEmbed
 			}
-			actions.SendEmbed(s, m.ChannelID, fn(msg))
+			bot.SendEmbed(s, m.ChannelID, fn(msg))
 		}
 	}
 }
