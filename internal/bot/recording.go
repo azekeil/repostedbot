@@ -4,8 +4,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/alex-broad/grec/internal/utils"
-	"github.com/alex-broad/grec/internal/voice"
+	"github.com/azekeil/grec/internal/utils"
+	"github.com/azekeil/grec/internal/voice"
 	"github.com/bwmarrin/discordgo"
 )
 

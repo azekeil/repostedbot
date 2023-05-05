@@ -6,10 +6,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/alex-broad/grec/internal/bot"
-	"github.com/alex-broad/grec/internal/config"
-	"github.com/alex-broad/grec/internal/handler"
-	"github.com/alex-broad/grec/internal/self"
+	"github.com/azekeil/grec/internal/bot"
+	"github.com/azekeil/grec/internal/config"
+	"github.com/azekeil/grec/internal/handler"
+	"github.com/azekeil/grec/internal/self"
 
 	"github.com/bwmarrin/discordgo"
 )

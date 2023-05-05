@@ -6,8 +6,8 @@ import (
 	"go/parser"
 	"go/token"
 
-	"github.com/alex-broad/grec/external/goparser"
-	"github.com/alex-broad/grec/internal"
+	"github.com/azekeil/grec/external/goparser"
+	"github.com/azekeil/grec/internal"
 )
 
 // parseEmbeds parses source files from an embed

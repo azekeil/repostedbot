@@ -6,7 +6,7 @@ Mostly cribbed from examples but some interesting things including parsing help 
 
 ## Setup
 
-1. `go install github.com/alex-broad/grec/cmd/grec` (needs at least go 1.16 for `embed`)
+1. `go install github.com/azekeil/grec/cmd/grec` (needs at least go 1.16 for `embed`)
 1. [Get a discord bot token and add the bot to your discord server(s)](https://www.writebots.com/discord-bot-token/). For bot permissions, you want:
 
    Text Permissions

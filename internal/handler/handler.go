@@ -5,9 +5,9 @@ import (
 	"log"
 	"strings"
 
-	"github.com/alex-broad/grec/internal/bot"
-	"github.com/alex-broad/grec/internal/commands"
-	"github.com/alex-broad/grec/internal/self"
+	"github.com/azekeil/grec/internal/bot"
+	"github.com/azekeil/grec/internal/commands"
+	"github.com/azekeil/grec/internal/self"
 	"github.com/bwmarrin/discordgo"
 )
 

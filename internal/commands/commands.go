@@ -3,8 +3,8 @@ package commands
 import (
 	"strings"
 
-	"github.com/alex-broad/grec/internal/bot"
-	"github.com/alex-broad/grec/internal/self"
+	"github.com/azekeil/grec/internal/bot"
+	"github.com/azekeil/grec/internal/self"
 	"github.com/bwmarrin/discordgo"
 )
 
