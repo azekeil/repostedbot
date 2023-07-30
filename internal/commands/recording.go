@@ -52,12 +52,6 @@ func (c *Command) RecordHere(s *discordgo.Session, m *discordgo.MessageCreate, h
 				return
 			}
 
-			// Ensure the channels are nil'd so they get recreated if being reused on closed channels.
-			v.Lock()
-			v.OpusRecv = nil
-			v.OpusSend = nil
-			v.Unlock()
-
 			bot.StartRecording(s, m, g, vs, v)
 			bot.SendEmbed(s, ch.ID, bot.NewEmbed("OK, Recording started!"))
 			return

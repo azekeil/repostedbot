@@ -31,7 +31,9 @@ func HandleVoice(c chan *discordgo.Packet, path string) {
 		file, ok := files[p.SSRC]
 		if !ok {
 			var err error
-			file, err = oggwriter.New(filepath.Join(path, fmt.Sprintf("%d.ogg", p.SSRC)), 48000, 2)
+			filename := filepath.Join(path, fmt.Sprintf("%d.ogg", p.SSRC))
+			log.Printf("creating file %s", filename)
+			file, err = oggwriter.New(filename, 48000, 2)
 			if err != nil {
 				log.Printf("failed to create file %d.ogg, giving up on recording: %v", p.SSRC, err)
 				return

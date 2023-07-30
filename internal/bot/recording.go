@@ -40,16 +40,22 @@ func StartRecording(
 
 func StopRecording(s *discordgo.Session, userID string) {
 	if r, ok := ActiveRecordings[userID]; ok {
-		func() {
-			defer func() {
-				res := recover()
-				if _, ok := res.(error); ok {
-					log.Println("Recovered from closing already closed go channel! (Suspect no active speakers)")
-				}
-			}()
-			close(r.VoiceConnection.OpusRecv)
+		defer func() {
+			res := recover()
+			if _, ok := res.(error); ok {
+				log.Println("Recovered from closing already closed go channel! (Suspect no active speakers)")
+			}
 		}()
+		close(r.VoiceConnection.OpusRecv)
+
 		r.VoiceConnection.Close()
+
+		// Nil channels for proper reinitialisation on reuse
+		r.VoiceConnection.Lock()
+		r.VoiceConnection.OpusRecv = nil
+		r.VoiceConnection.OpusSend = nil
+		r.VoiceConnection.Unlock()
+
 		// This was not obvious to get the bot to quit the voice channel :(
 		err := s.ChannelVoiceJoinManual(r.Guild.ID, "", true, false)
 		if err != nil {
