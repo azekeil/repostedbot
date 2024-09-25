@@ -3,17 +3,17 @@ package commands
 import (
 	"strings"
 
-	"github.com/azekeil/grec/internal/bot"
-	"github.com/azekeil/grec/internal/self"
+	"github.com/azekeil/repostedbot/internal/bot"
+	"github.com/azekeil/repostedbot/internal/self"
 	"github.com/bwmarrin/discordgo"
 )
 
 type Command struct{}
 
-// help: grec bot for recording things
+// help: repostedbot bot for recording things
 //
-// To see a list and summary of commands, type `!grec list`
-// To see help for a specific command, type `!grec help <command>`
+// To see a list and summary of commands, type `!rp list`
+// To see help for a specific command, type `!rp help <command>`
 func (c *Command) Help(s *discordgo.Session, m *discordgo.MessageCreate, help self.DocFuncs) {
 	// Send this function comment as help text
 	bot.SendEmbed(s, m.ChannelID, bot.NewEmbed(help.CommandHelp("Help")))

@@ -19,7 +19,7 @@ func ReadConfig() *viper.Viper {
 		log.Println("unable to get user's home directory:", err)
 	}
 	v.AddConfigPath(cwd)
-	v.AddConfigPath(filepath.Join(homedir, "/.config/grec"))
+	v.AddConfigPath(filepath.Join(homedir, "/.config/repostedbot"))
 	err = v.ReadInConfig()
 	if err != nil {
 		panic(err)

@@ -6,10 +6,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/azekeil/grec/internal/bot"
-	"github.com/azekeil/grec/internal/config"
-	"github.com/azekeil/grec/internal/handler"
-	"github.com/azekeil/grec/internal/self"
+	"github.com/azekeil/repostedbot/internal/config"
+	"github.com/azekeil/repostedbot/internal/handler"
+	"github.com/azekeil/repostedbot/internal/self"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -47,8 +46,10 @@ func main() {
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-sc
 
-	log.Println("Caught signal! Stopping all recordings...")
-	bot.StopAllRecordings(session)
+	log.Println("Caught signal!")
 	log.Println("Closing connection...")
-	session.Close()
+	err = session.Close()
+	if err != nil {
+		log.Printf("could not close session gracefully: %s", err)
+	}
 }

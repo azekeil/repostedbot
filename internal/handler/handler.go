@@ -5,15 +5,15 @@ import (
 	"log"
 	"strings"
 
-	"github.com/azekeil/grec/internal/bot"
-	"github.com/azekeil/grec/internal/commands"
-	"github.com/azekeil/grec/internal/self"
+	"github.com/azekeil/repostedbot/internal/bot"
+	"github.com/azekeil/repostedbot/internal/commands"
+	"github.com/azekeil/repostedbot/internal/self"
 	"github.com/bwmarrin/discordgo"
 )
 
 func MakeMessageCreateHandlerFunc(help self.DocFuncs) func(*discordgo.Session, *discordgo.MessageCreate) {
 	c := new(commands.Command)
-	cmdNotFoundFmtStr := "Could not find command `%s`. Try `!grec list`"
+	cmdNotFoundFmtStr := "Could not find command `%s`. Try `!rp list`"
 	return func(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		// Ignore all messages created by the bot itself
@@ -21,8 +21,8 @@ func MakeMessageCreateHandlerFunc(help self.DocFuncs) func(*discordgo.Session, *
 			return
 		}
 
-		// Ignore any messages that don't start with "!grec"
-		if !strings.HasPrefix(m.Content, "!grec") {
+		// Ignore any messages that don't start with "!rp"
+		if !strings.HasPrefix(m.Content, "!rp") {
 			return
 		}
 
@@ -71,7 +71,7 @@ func GuildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 
 	for _, channel := range event.Guild.Channels {
 		if channel.ID == event.Guild.ID {
-			_, err := s.ChannelMessageSend(channel.ID, "Hi! Use \"!grec\" to get started")
+			_, err := s.ChannelMessageSend(channel.ID, "Hi! Use \"!rp\" to get started")
 			if err != nil {
 				log.Printf("could not send guild creation message: %s", err)
 			}
