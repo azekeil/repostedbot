@@ -13,42 +13,15 @@ import (
 
 func MakeMessageCreateHandlerFunc(help self.DocFuncs) func(*discordgo.Session, *discordgo.MessageCreate) {
 	c := new(commands.Command)
-	cmdNotFoundFmtStr := "Could not find command `%s`. Try `!rp list`"
 	return func(s *discordgo.Session, m *discordgo.MessageCreate) {
-
 		// Ignore all messages created by the bot itself
 		if m.Author.ID == s.State.User.ID {
 			return
 		}
 
-		// Ignore any messages that don't start with "!rp"
-		if !strings.HasPrefix(m.Content, "!rp") {
-			return
-		}
-
-		all := strings.Fields(m.Content)
-		if len(all) < 2 {
-			c.Help(s, m, help)
-			return
-		}
-
-		// OK, we know there must be a command..
-		// See if there's a function with the same name, if so, call it
-		msg := ""
-		msgErr := false
-		// Special case for the 'help <x>' function
-		if all[1] == "help" && len(all) > 2 {
-			if cmdhelp := help.Capitalise(all[2]); cmdhelp != "" {
-				msg = help.CommandHelp(cmdhelp)
-			} else {
-				msg = fmt.Sprintf(cmdNotFoundFmtStr, all[2])
-				msgErr = true
-			}
-		} else if command := help.Capitalise(all[1]); command != "" {
-			self.CallMethod(c, command, []interface{}{s, m, help})
-		} else {
-			msg = fmt.Sprintf(cmdNotFoundFmtStr, all[1])
-			msgErr = true
+		msg, msgErr := handleMessageAttachments(s, m)
+		if msg == "" {
+			msg, msgErr = handleMessageCommands(s, m, help, c)
 		}
 
 		// Send message if defined
@@ -60,6 +33,43 @@ func MakeMessageCreateHandlerFunc(help self.DocFuncs) func(*discordgo.Session, *
 			bot.SendEmbed(s, m.ChannelID, fn(msg))
 		}
 	}
+}
+
+func handleMessageCommands(s *discordgo.Session, m *discordgo.MessageCreate, help self.DocFuncs, c *commands.Command) (msg string, msgErr bool) {
+	// Ignore any messages that don't start with "!rp"
+	if !strings.HasPrefix(m.Content, "!rp") {
+		return
+	}
+
+	all := strings.Fields(m.Content)
+	if len(all) < 2 {
+		c.Help(s, m, help)
+		return
+	}
+
+	commandNotFound := func(cmd string) (string, bool) {
+		return fmt.Sprintf("Could not find command `%s`. Try `!rp list`", cmd), true
+	}
+
+	// OK, we know there must be a command..
+	// See if there's a function with the same name, if so, call it
+	// Special case for the 'help <x>' function
+	if all[1] == "help" && len(all) > 2 {
+		if cmdhelp := help.Capitalise(all[2]); cmdhelp != "" {
+			return help.CommandHelp(cmdhelp), false
+		}
+		return commandNotFound(all[2])
+	} else if command := help.Capitalise(all[1]); command != "" {
+		self.CallMethod(c, command, []interface{}{s, m, help})
+	}
+	return commandNotFound(all[1])
+}
+
+func handleMessageAttachments(s *discordgo.Session, m *discordgo.MessageCreate) (msg string, msgErr bool) {
+	for _, a := range m.Attachments {
+		return a.URL, false
+	}
+	return
 }
 
 // This function will be called (due to AddHandler in main) every time a new
