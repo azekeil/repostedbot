@@ -10,7 +10,7 @@ import (
 
 type Command struct{}
 
-// help: repostedbot bot for recording things
+// help: repostedbot bot for detecting reposts
 //
 // To see a list and summary of commands, type `!rp list`
 // To see help for a specific command, type `!rp help <command>`

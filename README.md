@@ -7,11 +7,14 @@ Mostly cribbed from examples but some interesting things including parsing help 
 ## Setup
 
 1. `go install github.com/azekeil/repostedbot/cmd/repostedbot` (needs at least go 1.16 for `embed`)
-1. [Get a discord bot token and add the bot to your discord server(s)](https://www.writebots.com/discord-bot-token/). For bot permissions, you want:
-
-   Text Permissions
-   * Send Messages
-   * Read Message History
+1. [Get a discord bot token and add the bot to your discord server(s)](https://www.writebots.com/discord-bot-token/).
+   * For Intents, ensure you enable message content intent!
+   * For bot permissions, you want:
+      Text Permissions
+      * Send Messages
+      * Manage Messages
+      * Embed Links
+      * Read Message History
 
 1. Put your bot token in a file named `config.yaml` like so:
    ```yaml
