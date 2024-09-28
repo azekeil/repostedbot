@@ -2,6 +2,7 @@ package reposted
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/azekeil/repostedbot/internal/bot"
 	"github.com/bwmarrin/discordgo"
@@ -32,10 +33,11 @@ func ScoreSummary(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 func ScoreDetails(s *discordgo.Session, m *discordgo.MessageCreate, authorHandle string) {
 	authorID := GetAuthorIDfromLink(authorHandle)
-	var timestamps, posts string
-	for _, post := range Scores[m.GuildID][authorID] {
-		timestamps += post.TimeStamp.String() + "\n"
-		posts += GetMessageLink(post.MessageReference) + "\n"
+	var timestamps, reposts, originals string
+	for _, repost := range Scores[m.GuildID][authorID] {
+		timestamps += repost.TimeStamp.Format(time.DateTime) + "\n"
+		reposts += GetMessageLink(repost.Ref) + "\n"
+		originals += GetMessageLink(repost.OriginalRef) + "\n"
 	}
 	msg := bot.NewEmbed(authorHandle + ": " + strconv.Itoa(len(Scores[m.GuildID][authorID])))
 	msg.Fields = []*discordgo.MessageEmbedField{
@@ -46,7 +48,12 @@ func ScoreDetails(s *discordgo.Session, m *discordgo.MessageCreate, authorHandle
 		},
 		{
 			Name:   "Repost",
-			Value:  posts,
+			Value:  reposts,
+			Inline: true,
+		},
+		{
+			Name:   "Original",
+			Value:  originals,
 			Inline: true,
 		},
 	}

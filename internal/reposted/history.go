@@ -19,7 +19,7 @@ func ProcessHistory(s *discordgo.Session) error {
 					imgHash, repost := g.processAttachment(m, a.URL)
 					if repost != nil {
 						// Repost found! Add to score
-						g.addScore(m)
+						g.addScore(m, repost)
 					}
 					// Now add post to DB
 					g.addToDB(s, m, imgHash)
