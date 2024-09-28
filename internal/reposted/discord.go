@@ -13,3 +13,7 @@ func GetMessageLink(m *discordgo.MessageReference) string {
 func GetUserLink(ID string) string {
 	return fmt.Sprintf("<@%s>", ID)
 }
+
+func GetAuthorIDfromLink(link string) string {
+	return link[2 : len(link)-1]
+}

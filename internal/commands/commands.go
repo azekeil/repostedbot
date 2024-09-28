@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/azekeil/repostedbot/internal/bot"
+	"github.com/azekeil/repostedbot/internal/reposted"
 	"github.com/azekeil/repostedbot/internal/self"
 	"github.com/bwmarrin/discordgo"
 )
@@ -42,4 +43,14 @@ func (c *Command) List(s *discordgo.Session, m *discordgo.MessageCreate, help se
 		},
 	}
 	bot.SendEmbed(s, m.ChannelID, msg)
+}
+
+// scores: list all repost scores. To list all posts by a user append their @
+func (c *Command) Scores(s *discordgo.Session, m *discordgo.MessageCreate, help self.DocFuncs) {
+	all := strings.Fields(m.Content)
+	if len(all) == 2 {
+		reposted.ScoreSummary(s, m)
+		return
+	}
+	reposted.ScoreDetails(s, m, all[2])
 }

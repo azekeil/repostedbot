@@ -5,6 +5,7 @@ import (
 	"image"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/corona10/goimagehash"
@@ -12,11 +13,12 @@ import (
 
 type Post struct {
 	MessageReference *discordgo.MessageReference
+	TimeStamp        *time.Time
 	AuthorID         string
 }
 
 var ImgHashes = map[uint64]*Post{}
-var Scores = map[string]uint32{}
+var Scores = map[string][]*Post{}
 
 func hashImageFromURL(url string) (*goimagehash.ImageHash, error) {
 	res, err := http.Get(url)
@@ -60,7 +62,11 @@ func HandleMessageAttachments(s *discordgo.Session, m *discordgo.MessageCreate) 
 		}
 		if repost != nil {
 			// Repost found! Add to score
-			Scores[m.Author.ID]++
+			Scores[m.Author.ID] = append(Scores[m.Author.ID], &Post{
+				MessageReference: m.Reference(),
+				TimeStamp:        &m.Timestamp,
+				AuthorID:         m.Author.ID,
+			})
 			// And add something to the message to return.
 			aNumStr := ""
 			if len(m.Attachments) > 1 {
@@ -70,7 +76,7 @@ func HandleMessageAttachments(s *discordgo.Session, m *discordgo.MessageCreate) 
 				aNumStr,
 				GetMessageLink(ImgHashes[repost.GetHash()].MessageReference),
 				GetUserLink(ImgHashes[repost.GetHash()].AuthorID),
-				Scores[m.Author.ID],
+				len(Scores[m.Author.ID]),
 				GetUserLink(m.Author.ID),
 			)
 		}
@@ -78,6 +84,7 @@ func HandleMessageAttachments(s *discordgo.Session, m *discordgo.MessageCreate) 
 		if _, ok := ImgHashes[imgHash.GetHash()]; !ok {
 			ImgHashes[imgHash.GetHash()] = &Post{
 				MessageReference: m.Reference(),
+				TimeStamp:        &m.Timestamp,
 				AuthorID:         m.Author.ID,
 			}
 			log.Printf("Added %d to hashes. Now have %d hashes.", imgHash.GetHash(), len(ImgHashes))

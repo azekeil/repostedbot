@@ -60,8 +60,10 @@ func handleMessageCommands(s *discordgo.Session, m *discordgo.MessageCreate, hel
 			return help.CommandHelp(cmdhelp), false
 		}
 		return commandNotFound(all[2])
-	} else if command := help.Capitalise(all[1]); command != "" {
+	}
+	if command := help.Capitalise(all[1]); command != "" {
 		self.CallMethod(c, command, []interface{}{s, m, help})
+		return "", false
 	}
 	return commandNotFound(all[1])
 }
