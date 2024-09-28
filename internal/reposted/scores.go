@@ -9,7 +9,7 @@ import (
 
 func ScoreSummary(s *discordgo.Session, m *discordgo.MessageCreate) {
 	var authors, scores string
-	for authorID, score := range Scores {
+	for authorID, score := range Scores[m.GuildID] {
 		authors += GetUserLink(authorID) + "\n"
 		scores += strconv.Itoa(len(score)) + "\n"
 	}
@@ -33,11 +33,11 @@ func ScoreSummary(s *discordgo.Session, m *discordgo.MessageCreate) {
 func ScoreDetails(s *discordgo.Session, m *discordgo.MessageCreate, authorHandle string) {
 	authorID := GetAuthorIDfromLink(authorHandle)
 	var timestamps, posts string
-	for _, post := range Scores[authorID] {
+	for _, post := range Scores[m.GuildID][authorID] {
 		timestamps += post.TimeStamp.String() + "\n"
 		posts += GetMessageLink(post.MessageReference) + "\n"
 	}
-	msg := bot.NewEmbed(authorHandle + ": " + strconv.Itoa(len(Scores[authorID])))
+	msg := bot.NewEmbed(authorHandle + ": " + strconv.Itoa(len(Scores[m.GuildID][authorID])))
 	msg.Fields = []*discordgo.MessageEmbedField{
 		{
 			Name:   "Timestamp",

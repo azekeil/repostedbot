@@ -17,8 +17,8 @@ type Post struct {
 	AuthorID         string
 }
 
-var ImgHashes = map[uint64]*Post{}
-var Scores = map[string][]*Post{}
+var ImgHashes = map[string]map[uint64]*Post{}
+var Scores = map[string]map[string][]*Post{}
 
 func hashImageFromURL(url string) (*goimagehash.ImageHash, error) {
 	res, err := http.Get(url)
@@ -36,8 +36,8 @@ func hashImageFromURL(url string) (*goimagehash.ImageHash, error) {
 	return goimagehash.AverageHash(m)
 }
 
-func findRepost(hash *goimagehash.ImageHash, distance int) (*goimagehash.ImageHash, error) {
-	for h := range ImgHashes {
+func findRepost(hashMap map[uint64]*Post, hash *goimagehash.ImageHash, distance int) (*goimagehash.ImageHash, error) {
+	for h := range hashMap {
 		loopHash := goimagehash.NewImageHash(h, goimagehash.AHash)
 		d, err := hash.Distance(loopHash)
 		if err != nil {
@@ -51,18 +51,20 @@ func findRepost(hash *goimagehash.ImageHash, distance int) (*goimagehash.ImageHa
 }
 
 func HandleMessageAttachments(s *discordgo.Session, m *discordgo.MessageCreate) (msg string, msgErr bool) {
+	thisImgHashes := ImgHashes[m.GuildID]
+	thisScores := Scores[m.GuildID]
 	for i, a := range m.Attachments {
 		imgHash, err := hashImageFromURL(a.URL)
 		if err != nil {
 			log.Printf("failed to process %s: %v", m.Message.ID, err)
 		}
-		repost, err := findRepost(imgHash, 2)
+		repost, err := findRepost(thisImgHashes, imgHash, 2)
 		if err != nil {
 			log.Printf("failed to findRepost: %v", err)
 		}
 		if repost != nil {
 			// Repost found! Add to score
-			Scores[m.Author.ID] = append(Scores[m.Author.ID], &Post{
+			thisScores[m.Author.ID] = append(thisScores[m.Author.ID], &Post{
 				MessageReference: m.Reference(),
 				TimeStamp:        &m.Timestamp,
 				AuthorID:         m.Author.ID,
@@ -74,20 +76,20 @@ func HandleMessageAttachments(s *discordgo.Session, m *discordgo.MessageCreate) 
 			}
 			msg += fmt.Sprintf("%srepost of %s by %s! That's %d reposts %s has made now ;)\n",
 				aNumStr,
-				GetMessageLink(ImgHashes[repost.GetHash()].MessageReference),
-				GetUserLink(ImgHashes[repost.GetHash()].AuthorID),
-				len(Scores[m.Author.ID]),
+				GetMessageLink(thisImgHashes[repost.GetHash()].MessageReference),
+				GetUserLink(thisImgHashes[repost.GetHash()].AuthorID),
+				len(thisScores[m.Author.ID]),
 				GetUserLink(m.Author.ID),
 			)
 		}
 		// Now add post to DB
-		if _, ok := ImgHashes[imgHash.GetHash()]; !ok {
-			ImgHashes[imgHash.GetHash()] = &Post{
+		if _, ok := thisImgHashes[imgHash.GetHash()]; !ok {
+			thisImgHashes[imgHash.GetHash()] = &Post{
 				MessageReference: m.Reference(),
 				TimeStamp:        &m.Timestamp,
 				AuthorID:         m.Author.ID,
 			}
-			log.Printf("Added %d to hashes. Now have %d hashes.", imgHash.GetHash(), len(ImgHashes))
+			log.Printf("Added %d to hashes. Now have %d hashes.", imgHash.GetHash(), len(thisImgHashes))
 		}
 	}
 	err := SaveDB()
