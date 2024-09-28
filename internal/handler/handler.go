@@ -7,6 +7,7 @@ import (
 
 	"github.com/azekeil/repostedbot/internal/bot"
 	"github.com/azekeil/repostedbot/internal/commands"
+	"github.com/azekeil/repostedbot/internal/reposted"
 	"github.com/azekeil/repostedbot/internal/self"
 	"github.com/bwmarrin/discordgo"
 )
@@ -19,7 +20,7 @@ func MakeMessageCreateHandlerFunc(help self.DocFuncs) func(*discordgo.Session, *
 			return
 		}
 
-		msg, msgErr := handleMessageAttachments(s, m)
+		msg, msgErr := reposted.HandleMessageAttachments(s, m)
 		if msg == "" {
 			msg, msgErr = handleMessageCommands(s, m, help, c)
 		}
@@ -63,13 +64,6 @@ func handleMessageCommands(s *discordgo.Session, m *discordgo.MessageCreate, hel
 		self.CallMethod(c, command, []interface{}{s, m, help})
 	}
 	return commandNotFound(all[1])
-}
-
-func handleMessageAttachments(s *discordgo.Session, m *discordgo.MessageCreate) (msg string, msgErr bool) {
-	for _, a := range m.Attachments {
-		return a.URL, false
-	}
-	return
 }
 
 // This function will be called (due to AddHandler in main) every time a new
