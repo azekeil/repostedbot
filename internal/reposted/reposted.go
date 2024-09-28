@@ -54,18 +54,18 @@ func newGuild(guildID string) *guild {
 func HandleMessageAttachments(s *discordgo.Session, m *discordgo.MessageCreate) (msg string, msgErr bool) {
 	g := newGuild(m.GuildID)
 	for i, a := range m.Attachments {
-		imgHash, repost := g.ProcessAttachment(m, a.URL)
+		imgHash, repost := g.processAttachment(m.Message, a.URL)
 		if repost != nil {
 			// Repost found! Add to score
-			g.addScore(m)
+			g.addScore(m.Message)
 			// And add something to the message to return.
-			msg = g.addRepostToMsg(m, i, msg, repost)
+			msg = g.addRepostToMsg(m.Message, i, msg, repost)
 		}
 		// Now add post to DB
-		g.addToDB(s, m, imgHash)
+		g.addToDB(s, m.Message, imgHash)
 	}
 	// Update LastPost
-	g.l[m.ChannelID] = m.ID
+	g.updateLastPost(m.Message)
 	err := SaveDB()
 	if err != nil {
 		log.Fatalf("Fatal error saving DB: %v", err)
@@ -73,7 +73,11 @@ func HandleMessageAttachments(s *discordgo.Session, m *discordgo.MessageCreate) 
 	return
 }
 
-func (g *guild) addScore(m *discordgo.MessageCreate) {
+func (g *guild) updateLastPost(m *discordgo.Message) {
+	g.l[m.ChannelID] = m.ID
+}
+
+func (g *guild) addScore(m *discordgo.Message) {
 	g.s[m.Author.ID] = append(g.s[m.Author.ID], &Post{
 		MessageReference: m.Reference(),
 		TimeStamp:        &m.Timestamp,
@@ -81,7 +85,7 @@ func (g *guild) addScore(m *discordgo.MessageCreate) {
 	})
 }
 
-func (g *guild) addToDB(s *discordgo.Session, m *discordgo.MessageCreate, imgHash *goimagehash.ImageHash) {
+func (g *guild) addToDB(s *discordgo.Session, m *discordgo.Message, imgHash *goimagehash.ImageHash) {
 	if _, ok := g.i[imgHash.GetHash()]; !ok {
 		g.i[imgHash.GetHash()] = &Post{
 			MessageReference: m.Reference(),
@@ -92,7 +96,7 @@ func (g *guild) addToDB(s *discordgo.Session, m *discordgo.MessageCreate, imgHas
 	}
 }
 
-func (g *guild) addRepostToMsg(m *discordgo.MessageCreate, i int, msg string, repost *goimagehash.ImageHash) string {
+func (g *guild) addRepostToMsg(m *discordgo.Message, i int, msg string, repost *goimagehash.ImageHash) string {
 	aNumStr := ""
 	if len(m.Attachments) > 1 {
 		aNumStr = fmt.Sprintf("image %d/%d is a ", i, len(m.Attachments))
@@ -107,12 +111,12 @@ func (g *guild) addRepostToMsg(m *discordgo.MessageCreate, i int, msg string, re
 	return msg
 }
 
-// ProcessAttachment downloads and generates a hash for an attachment.
+// processAttachment downloads and generates a hash for an attachment.
 // If it's a repost then repost will contain the hash of the repost, else nil.
-func (g *guild) ProcessAttachment(m *discordgo.MessageCreate, url string) (imgHash *goimagehash.ImageHash, repost *goimagehash.ImageHash) {
+func (g *guild) processAttachment(m *discordgo.Message, url string) (imgHash *goimagehash.ImageHash, repost *goimagehash.ImageHash) {
 	imgHash, err := hashImageFromURL(url)
 	if err != nil {
-		log.Printf("failed to process %s: %v", m.Message.ID, err)
+		log.Printf("failed to process %s: %v", m.ID, err)
 	}
 	repost, err = findRepost(g.i, imgHash, 2)
 	if err != nil {
