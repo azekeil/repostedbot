@@ -1,2 +1,3 @@
-# Personal config
+# Personal config/dbs
 config.yaml
+*.db*

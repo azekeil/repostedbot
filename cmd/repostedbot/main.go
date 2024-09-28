@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/fs"
 	"log"
 	"os"
 	"os/signal"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/azekeil/repostedbot/internal/config"
 	"github.com/azekeil/repostedbot/internal/handler"
+	"github.com/azekeil/repostedbot/internal/reposted"
 	"github.com/azekeil/repostedbot/internal/self"
 
 	"github.com/bwmarrin/discordgo"
@@ -27,6 +29,14 @@ func main() {
 	defer session.Close()
 
 	session.Identify.Intents = discordgo.IntentsAllWithoutPrivileged
+
+	err = reposted.LoadDB()
+	if err != nil {
+		if _, ok := err.(*fs.PathError); !ok {
+			log.Fatalf("Fatal error loading DB: %v", err)
+		}
+		log.Printf("Error loading DB: %v", err)
+	}
 
 	// Register callback for the messageCreate events.
 	session.AddHandler(handler.MakeMessageCreateHandlerFunc(help))

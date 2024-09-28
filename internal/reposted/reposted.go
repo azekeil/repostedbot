@@ -15,7 +15,7 @@ type Post struct {
 	AuthorID         string
 }
 
-var ImgHashes = map[*goimagehash.ImageHash]*Post{}
+var ImgHashes = map[uint64]*Post{}
 var Scores = map[string]uint32{}
 
 func hashImageFromURL(url string) (*goimagehash.ImageHash, error) {
@@ -36,12 +36,13 @@ func hashImageFromURL(url string) (*goimagehash.ImageHash, error) {
 
 func findRepost(hash *goimagehash.ImageHash, distance int) (*goimagehash.ImageHash, error) {
 	for h := range ImgHashes {
-		d, err := hash.Distance(h)
+		loopHash := goimagehash.NewImageHash(h, goimagehash.AHash)
+		d, err := hash.Distance(loopHash)
 		if err != nil {
 			return nil, err
 		}
 		if d <= distance {
-			return h, nil
+			return loopHash, nil
 		}
 	}
 	return nil, nil
@@ -67,20 +68,24 @@ func HandleMessageAttachments(s *discordgo.Session, m *discordgo.MessageCreate) 
 			}
 			msg += fmt.Sprintf("%srepost of %s by %s! That's %d reposts %s has made now ;)\n",
 				aNumStr,
-				GetMessageLink(ImgHashes[repost].MessageReference),
-				GetUserLink(ImgHashes[repost].AuthorID),
+				GetMessageLink(ImgHashes[repost.GetHash()].MessageReference),
+				GetUserLink(ImgHashes[repost.GetHash()].AuthorID),
 				Scores[m.Author.ID],
 				GetUserLink(m.Author.ID),
 			)
 		}
 		// Now add post to DB
-		if _, ok := ImgHashes[imgHash]; !ok {
-			ImgHashes[imgHash] = &Post{
+		if _, ok := ImgHashes[imgHash.GetHash()]; !ok {
+			ImgHashes[imgHash.GetHash()] = &Post{
 				MessageReference: m.Reference(),
 				AuthorID:         m.Author.ID,
 			}
 			log.Printf("Added %d to hashes. Now have %d hashes.", imgHash.GetHash(), len(ImgHashes))
 		}
+	}
+	err := SaveDB()
+	if err != nil {
+		log.Fatalf("Fatal error saving DB: %v", err)
 	}
 	return
 }
