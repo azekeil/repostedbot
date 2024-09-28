@@ -30,4 +30,7 @@ Mostly cribbed from examples but some interesting things including parsing help 
 ## Using
 
 In a text channel `repostedbot` has permissions to read and write messages, enter `!rp`. You should see:
+
 ![Help](./docs/images/help.png)
+
+[Retweet icons created by Dave Gandy - Flaticon](https://www.flaticon.com/free-icons/retweet)
