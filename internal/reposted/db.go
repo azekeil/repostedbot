@@ -7,9 +7,9 @@ import (
 )
 
 var DBFiles = map[string]any{
-	"repostedHashes.db": &ImgHashes,
-	"repostedScores.db": &Scores,
-	"repostedLastPost.db": &LastPost,
+	"repostedHashes.db":   &ImgHashes,
+	"repostedScores.db":   &Scores,
+	"repostedLastPost.db": &LastPosts,
 }
 
 var SaveMutex = sync.Mutex{}

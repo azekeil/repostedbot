@@ -37,6 +37,11 @@ func main() {
 		}
 		log.Printf("Error loading DB: %v", err)
 	}
+	// Process Missing History
+	// err = reposted.ProcessHistory(session)
+	// if err != nil {
+	// 	log.Printf("Error processing message history: %v", err)
+	// }
 
 	// Register callback for the messageCreate events.
 	session.AddHandler(handler.MakeMessageCreateHandlerFunc(help))

@@ -2,13 +2,10 @@ package reposted
 
 import (
 	"fmt"
-	"image"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/corona10/goimagehash"
 )
 
 type Post struct {
@@ -19,43 +16,36 @@ type Post struct {
 
 type ImgHashPost = map[uint64]*Post
 type ScorePosts = map[string][]*Post
-type LastPosts = map[string]string
+type LastPost = map[string]string
 
 var ImgHashes = map[string]ImgHashPost{}
 var Scores = map[string]ScorePosts{}
-var LastPost = map[string]LastPosts{}
+var LastPosts = map[string]LastPost{}
 
-func hashImageFromURL(url string) (*goimagehash.ImageHash, error) {
-	res, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	if res.StatusCode != 200 {
-		return nil, fmt.Errorf("got %d downloading %s", res.StatusCode, url)
-	}
-	defer res.Body.Close()
-	m, _, err := image.Decode(res.Body)
-	if err != nil {
-		return nil, err
-	}
-	return goimagehash.AverageHash(m)
-}
+// func ProcessMessage(m *discordgo.Message) (reposts []*goimagehash.ImageHash, err error) {
+// 	for _, a := range m.Attachments {
+// 		repost, err := ProcessAttachment(a)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		reposts = append(reposts, repost)
+// 	}
+// 	return reposts, nil
+// }
 
-func findRepost(hashMap ImgHashPost, hash *goimagehash.ImageHash, distance int) (*goimagehash.ImageHash, error) {
-	for h := range hashMap {
-		loopHash := goimagehash.NewImageHash(h, goimagehash.AHash)
-		d, err := hash.Distance(loopHash)
-		if err != nil {
-			return nil, err
-		}
-		if d <= distance {
-			return loopHash, nil
-		}
-	}
-	return nil, nil
-}
+// func ProcessAttachment(a *discordgo.MessageAttachment) (repost *goimagehash.ImageHash, err error) {
+// 	imgHash, err := hashImageFromURL(a.URL)
+// 	if err != nil {
+// 		log.Printf("failed to process %s: %v", m.Message.ID, err)
+// 	}
+// 	repost, err := findRepost(thisImgHashes, imgHash, 2)
+// 	if err != nil {
+// 		log.Printf("failed to findRepost: %v", err)
+// 	}
+// }
 
 func HandleMessageAttachments(s *discordgo.Session, m *discordgo.MessageCreate) (msg string, msgErr bool) {
+	// Ensure this guild's hashes are initialized
 	if ImgHashes[m.GuildID] == nil {
 		ImgHashes[m.GuildID] = ImgHashPost{}
 	}
@@ -100,14 +90,21 @@ func HandleMessageAttachments(s *discordgo.Session, m *discordgo.MessageCreate) 
 				TimeStamp:        &m.Timestamp,
 				AuthorID:         m.Author.ID,
 			}
-			log.Printf("Added %d to hashes. Now have %d hashes for guild %s.", imgHash.GetHash(), len(thisImgHashes), m.GuildID)
+			var guildName string
+			guild, err := s.Guild(m.GuildID)
+			if err != nil {
+				log.Printf("failed to get Guild: %v", err)
+			} else {
+				guildName = guild.Name
+			}
+			log.Printf("Added %d to hashes. Now have %d hashes for guild %s.", imgHash.GetHash(), len(thisImgHashes), guildName)
 		}
 	}
 	// Update LastPost
-	if LastPost[m.GuildID] == nil {
-		LastPost[m.GuildID] = LastPosts{}
+	if LastPosts[m.GuildID] == nil {
+		LastPosts[m.GuildID] = LastPost{}
 	}
-	LastPost[m.GuildID][m.ChannelID] = m.ID
+	LastPosts[m.GuildID][m.ChannelID] = m.ID
 	err := SaveDB()
 	if err != nil {
 		log.Fatalf("Fatal error saving DB: %v", err)
