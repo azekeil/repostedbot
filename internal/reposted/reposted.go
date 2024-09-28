@@ -17,8 +17,11 @@ type Post struct {
 	AuthorID         string
 }
 
-var ImgHashes = map[string]map[uint64]*Post{}
-var Scores = map[string]map[string][]*Post{}
+type ImgHashPost = map[uint64]*Post
+type ScorePosts = map[string][]*Post
+
+var ImgHashes = map[string]ImgHashPost{}
+var Scores = map[string]ScorePosts{}
 
 func hashImageFromURL(url string) (*goimagehash.ImageHash, error) {
 	res, err := http.Get(url)
@@ -36,7 +39,7 @@ func hashImageFromURL(url string) (*goimagehash.ImageHash, error) {
 	return goimagehash.AverageHash(m)
 }
 
-func findRepost(hashMap map[uint64]*Post, hash *goimagehash.ImageHash, distance int) (*goimagehash.ImageHash, error) {
+func findRepost(hashMap ImgHashPost, hash *goimagehash.ImageHash, distance int) (*goimagehash.ImageHash, error) {
 	for h := range hashMap {
 		loopHash := goimagehash.NewImageHash(h, goimagehash.AHash)
 		d, err := hash.Distance(loopHash)
@@ -51,7 +54,13 @@ func findRepost(hashMap map[uint64]*Post, hash *goimagehash.ImageHash, distance 
 }
 
 func HandleMessageAttachments(s *discordgo.Session, m *discordgo.MessageCreate) (msg string, msgErr bool) {
+	if ImgHashes[m.GuildID] == nil {
+		ImgHashes[m.GuildID] = ImgHashPost{}
+	}
 	thisImgHashes := ImgHashes[m.GuildID]
+	if Scores[m.GuildID] == nil {
+		Scores[m.GuildID] = ScorePosts{}
+	}
 	thisScores := Scores[m.GuildID]
 	for i, a := range m.Attachments {
 		imgHash, err := hashImageFromURL(a.URL)
@@ -89,7 +98,7 @@ func HandleMessageAttachments(s *discordgo.Session, m *discordgo.MessageCreate) 
 				TimeStamp:        &m.Timestamp,
 				AuthorID:         m.Author.ID,
 			}
-			log.Printf("Added %d to hashes. Now have %d hashes.", imgHash.GetHash(), len(thisImgHashes))
+			log.Printf("Added %d to hashes. Now have %d hashes for guild %s.", imgHash.GetHash(), len(thisImgHashes), m.GuildID)
 		}
 	}
 	err := SaveDB()
