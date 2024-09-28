@@ -32,7 +32,7 @@ func getDocPackage(d map[string]*ast.Package, name string) *doc.Package {
 }
 
 func getDocMethods(p *doc.Package, typeName string) DocFuncs {
-	s := make(map[string]*doc.Func, len(p.Types))
+	s := make(DocFuncs, len(p.Types))
 	for _, t := range p.Types {
 		if t.Name == typeName {
 			for _, m := range t.Methods {
@@ -43,7 +43,7 @@ func getDocMethods(p *doc.Package, typeName string) DocFuncs {
 	return DocFuncs(s)
 }
 
-func MakeHelp(path, pkg, typ string) map[string]*doc.Func {
+func MakeHelp(path, pkg, typ string) DocFuncs {
 	d, err := parseEmbeds(path)
 	if err != nil {
 		panic(err)
