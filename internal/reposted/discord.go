@@ -2,6 +2,7 @@ package reposted
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -16,4 +17,13 @@ func GetUserLink(ID string) string {
 
 func GetAuthorIDfromLink(link string) string {
 	return link[2 : len(link)-1]
+}
+
+func GetGuildName(s *discordgo.Session, guildID string) string {
+	guild, err := s.Guild(guildID)
+	if err != nil {
+		log.Printf("failed to get Guild: %v", err)
+		return guildID
+	} 
+	return guild.Name
 }
