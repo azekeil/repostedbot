@@ -19,9 +19,11 @@ type Post struct {
 
 type ImgHashPost = map[uint64]*Post
 type ScorePosts = map[string][]*Post
+type LastPosts = map[string]string
 
 var ImgHashes = map[string]ImgHashPost{}
 var Scores = map[string]ScorePosts{}
+var LastPost = map[string]LastPosts{}
 
 func hashImageFromURL(url string) (*goimagehash.ImageHash, error) {
 	res, err := http.Get(url)
@@ -101,6 +103,11 @@ func HandleMessageAttachments(s *discordgo.Session, m *discordgo.MessageCreate) 
 			log.Printf("Added %d to hashes. Now have %d hashes for guild %s.", imgHash.GetHash(), len(thisImgHashes), m.GuildID)
 		}
 	}
+	// Update LastPost
+	if LastPost[m.GuildID] == nil {
+		LastPost[m.GuildID] = LastPosts{}
+	}
+	LastPost[m.GuildID][m.ChannelID] = m.ID
 	err := SaveDB()
 	if err != nil {
 		log.Fatalf("Fatal error saving DB: %v", err)
