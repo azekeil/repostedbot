@@ -3,6 +3,7 @@ package reposted
 import (
 	"fmt"
 	"log"
+	"net/url"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -58,30 +59,48 @@ func newGuild(guildID string) *guild {
 	}
 }
 
-func HandleMessageAttachments(s *discordgo.Session, m *discordgo.MessageCreate) (msg string, msgErr bool) {
+// MessageHandler is the handler for incoming messages.
+func MessageHandler(s *discordgo.Session, m *discordgo.MessageCreate) (msg string, msgErr bool) {
 	g := newGuild(m.GuildID)
-	for i, a := range m.Attachments {
-		imgHash, original := g.processAttachment(m.Message, a.URL)
-		if original != nil {
-			// Repost found! Add to score
-			g.addScore(m.Message, original)
-			// And add something to the message to return.
-			msg = g.addRepostToMsg(m.Message, i, msg, original)
-		}
-		// Now add post to DB
-		g.addToDB(s, m.Message, imgHash)
-	}
-	// Update LastPost
-	g.updateLastPost(m.Message)
-	err := SaveDB()
-	if err != nil {
+	msg = g.processMessage(s, m.Message, msg)
+	if err := SaveDB(); err != nil {
 		log.Fatalf("Fatal error saving DB: %v", err)
 	}
-	return
+	return msg, false
+}
+
+func (g *guild) processMessage(s *discordgo.Session, m *discordgo.Message, msg string) string {
+	// If the content is just a URL, process it.
+	u, err := url.Parse(m.Content)
+	if err != nil {
+		msg = g.processImage(s, m, 0, u.String(), msg)
+	}
+	// Now do any attachments.
+	for i, a := range m.Attachments {
+		msg = g.processImage(s, m, i, a.URL, msg)
+	}
+	// Update LastPost
+	g.updateLastPost(m)
+	return msg
+}
+
+func (g *guild) processImage(s *discordgo.Session, m *discordgo.Message, attachmentNum int, URL, msg string) string {
+	imgHash, original := g.hashURL(m, URL)
+	if original != nil {
+		// Repost found! Add to score
+		g.addScore(m, original)
+		// And add something to the message to return.
+		msg += g.addRepostToMsg(m, attachmentNum, msg, original)
+	}
+	// Now add post to DB
+	g.addToDB(s, m, imgHash)
+	return msg
 }
 
 func (g *guild) updateLastPost(m *discordgo.Message) {
-	g.l[m.ChannelID] = m.ID
+	if m.ID > g.l[m.ChannelID] {
+		g.l[m.ChannelID] = m.ID
+	}
 }
 
 func (g *guild) addScore(m *discordgo.Message, original *goimagehash.ImageHash) {
@@ -120,10 +139,10 @@ func (g *guild) addRepostToMsg(m *discordgo.Message, i int, msg string, repost *
 	return msg
 }
 
-// processAttachment downloads and generates a hash for an attachment.
+// hashURL downloads and generates a hash for an attachment.
 // If it's a repost then repost will contain the hash of the repost, else nil.
-func (g *guild) processAttachment(m *discordgo.Message, url string) (imgHash *goimagehash.ImageHash, original *goimagehash.ImageHash) {
-	imgHash, err := hashImageFromURL(url)
+func (g *guild) hashURL(m *discordgo.Message, URL string) (imgHash *goimagehash.ImageHash, original *goimagehash.ImageHash) {
+	imgHash, err := hashImageFromURL(URL)
 	if err != nil {
 		log.Printf("failed to process %s: %v", m.ID, err)
 	}

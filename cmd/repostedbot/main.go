@@ -37,8 +37,8 @@ func main() {
 		}
 		log.Printf("Error loading DB: %v", err)
 	}
-	// Process Missing History
-	err = reposted.ProcessHistory(session)
+	// Catch up
+	err = reposted.CatchUp(session)
 	if err != nil {
 		log.Printf("Error processing message history: %v", err)
 	}

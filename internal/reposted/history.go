@@ -6,7 +6,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func ProcessHistory(s *discordgo.Session) error {
+// CatchUp with the last 100 (max) messages since the last processed post in each channel
+func CatchUp(s *discordgo.Session) error {
 	for guildID, lpGuild := range LastPosts {
 		g := newGuild(guildID)
 		for channelID, messageID := range lpGuild {
@@ -14,24 +15,18 @@ func ProcessHistory(s *discordgo.Session) error {
 			if err != nil {
 				return err
 			}
-			for _, m := range messages {
-				for _, a := range m.Attachments {
-					imgHash, repost := g.processAttachment(m, a.URL)
-					if repost != nil {
-						// Repost found! Add to score
-						g.addScore(m, repost)
-					}
-					// Now add post to DB
-					g.addToDB(s, m, imgHash)
-				}
-				// Update LastPost
-				g.updateLastPost(m)
-			}
+			g.BulkProcess(s, messages)
 		}
 	}
-	err := SaveDB()
-	if err != nil {
+	return nil
+}
+
+// BulkProcess processes a list of messages into the database and updates the lastpost
+func (g *guild) BulkProcess(s *discordgo.Session, messages []*discordgo.Message) {
+	for _, m := range messages {
+		g.processMessage(s, m, "")
+	}
+	if err := SaveDB(); err != nil {
 		log.Fatalf("Fatal error saving DB: %v", err)
 	}
-	return nil
 }

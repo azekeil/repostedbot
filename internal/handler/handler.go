@@ -20,7 +20,7 @@ func MakeMessageCreateHandlerFunc(help self.DocFuncs) func(*discordgo.Session, *
 			return
 		}
 
-		msg, msgErr := reposted.HandleMessageAttachments(s, m)
+		msg, msgErr := reposted.MessageHandler(s, m)
 		if msg == "" {
 			msg, msgErr = handleMessageCommands(s, m, help, c)
 		}
