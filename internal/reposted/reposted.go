@@ -4,35 +4,9 @@ import (
 	"fmt"
 	"log"
 	"net/url"
-	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/corona10/goimagehash"
-)
-
-type Post struct {
-	MessageReference *discordgo.MessageReference
-	AuthorID         string
-}
-
-type Score struct {
-	Ref              *discordgo.MessageReference
-	TimeStamp        *time.Time
-	AuthorID         string
-	OriginalRef      *discordgo.MessageReference
-	OriginalAuthorID string
-}
-
-type (
-	ImgHashPost = map[uint64]*Post
-	ScorePosts  = map[string][]*Score
-	LastPost    = map[string]string
-)
-
-var (
-	ImgHashes = map[string]ImgHashPost{}
-	Scores    = map[string]ScorePosts{}
-	LastPosts = map[string]LastPost{}
 )
 
 type guild struct {
