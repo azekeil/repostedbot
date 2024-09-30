@@ -14,7 +14,7 @@ import (
 
 func ScoreSummary(s *discordgo.Session, m *discordgo.MessageCreate) {
 	var authors, scores string
-	for authorID, score := range Scores[m.GuildID] {
+	for authorID, score := range Scores.Get(m.GuildID).Iter() {
 		authors += GetUserLink(authorID) + "\n"
 		scores += strconv.Itoa(len(score)) + "\n"
 	}
@@ -38,9 +38,9 @@ func ScoreSummary(s *discordgo.Session, m *discordgo.MessageCreate) {
 func ScoreDetails(s *discordgo.Session, m *discordgo.MessageCreate, authorHandle string) {
 	authorID := GetAuthorIDfromLink(authorHandle)
 	// Order keys
-	keys := make([]string, 0, len(Scores[m.GuildID][authorID]))
-	sc := make(map[string]*Score, len(Scores[m.GuildID][authorID]))
-	for _, repost := range Scores[m.GuildID][authorID] {
+	keys := make([]string, 0, len(Scores.Get(m.GuildID).Get(authorID)))
+	sc := make(map[string]*Score, len(Scores.Get(m.GuildID).Get(authorID)))
+	for _, repost := range Scores.Get(m.GuildID).Get(authorID) {
 		v := strconv.FormatInt(repost.TimeStamp.Unix(), 10) + repost.Ref.MessageID
 		keys = append(keys, v)
 		sc[v] = repost
@@ -55,7 +55,7 @@ func ScoreDetails(s *discordgo.Session, m *discordgo.MessageCreate, authorHandle
 		originals += GetMessageLink(repost.OriginalRef) + "\n"
 	}
 	if len(timestamps)+len(reposts)+len(originals) < 1024 {
-		msg := bot.NewEmbed(authorHandle + ": " + strconv.Itoa(len(Scores[m.GuildID][authorID])))
+		msg := bot.NewEmbed(authorHandle + ": " + strconv.Itoa(len(Scores.Get(m.GuildID).Get(authorID))))
 		msg.Fields = []*discordgo.MessageEmbedField{
 			{
 				Name:   "Timestamp",

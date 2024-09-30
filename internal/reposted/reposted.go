@@ -17,19 +17,19 @@ type guild struct {
 
 func newGuild(guildID string) *guild {
 	// Ensure this guild's hashes are initialized
-	if ImgHashes[guildID] == nil {
-		ImgHashes[guildID] = ImgHashPost{}
+	if ImgHashes.Get(guildID) == nil {
+		ImgHashes.Set(guildID, &SafeMap[uint64, *Post]{})
 	}
-	if Scores[guildID] == nil {
-		Scores[guildID] = ScorePosts{}
+	if Scores.Get(guildID) == nil {
+		Scores.Set(guildID, &SafeMap[string, []*Score]{})
 	}
-	if LastPosts[guildID] == nil {
-		LastPosts[guildID] = LastPost{}
+	if LastPosts.Get(guildID) == nil {
+		LastPosts.Set(guildID, &SafeMap[string, string]{})
 	}
 	return &guild{
-		i: ImgHashes[guildID],
-		s: Scores[guildID],
-		l: LastPosts[guildID],
+		i: ImgHashes.Get(guildID),
+		s: Scores.Get(guildID),
+		l: LastPosts.Get(guildID),
 	}
 }
 
@@ -74,29 +74,29 @@ func (g *guild) processImage(s *discordgo.Session, m *discordgo.Message, attachm
 }
 
 func (g *guild) updateLastPost(m *discordgo.Message) {
-	if m.ID > g.l[m.ChannelID] {
-		g.l[m.ChannelID] = m.ID
+	if m.ID > g.l.Get(m.ChannelID) {
+		g.l.Set(m.ChannelID, m.ID)
 	}
 }
 
 func (g *guild) addScore(m *discordgo.Message, original *goimagehash.ImageHash) {
-	originalImgHash := g.i[original.GetHash()]
-	g.s[m.Author.ID] = append(g.s[m.Author.ID], &Score{
+	originalImgHash := g.i.Get(original.GetHash())
+	g.s.Set(m.Author.ID,  append(g.s.Get(m.Author.ID), &Score{
 		Ref:              m.Reference(),
 		TimeStamp:        &m.Timestamp,
 		AuthorID:         m.Author.ID,
 		OriginalRef:      originalImgHash.MessageReference,
 		OriginalAuthorID: originalImgHash.AuthorID,
-	})
+	}))
 }
 
 func (g *guild) addToDB(s *discordgo.Session, m *discordgo.Message, imgHash *goimagehash.ImageHash) {
-	if _, ok := g.i[imgHash.GetHash()]; !ok {
-		g.i[imgHash.GetHash()] = &Post{
+	if _, ok := g.i.Get2(imgHash.GetHash()); !ok {
+		g.i.Set(imgHash.GetHash(), &Post{
 			MessageReference: m.Reference(),
 			AuthorID:         m.Author.ID,
-		}
-		log.Printf("Added %d to hashes. Now have %d hashes for guild %s.", imgHash.GetHash(), len(g.i), GetGuildName(s, m.GuildID))
+		})
+		log.Printf("Added %d to hashes. Now have %d hashes for guild %s.", imgHash.GetHash(), g.i.Len(), GetGuildName(s, m.GuildID))
 	}
 }
 
@@ -107,9 +107,9 @@ func (g *guild) addRepostToMsg(m *discordgo.Message, i int, msg string, repost *
 	}
 	msg += fmt.Sprintf("%srepost of %s by %s! That's %d reposts %s has made now ;)\n",
 		aNumStr,
-		GetMessageLink(g.i[repost.GetHash()].MessageReference),
-		GetUserLink(g.i[repost.GetHash()].AuthorID),
-		len(g.s[m.Author.ID]),
+		GetMessageLink(g.i.Get(repost.GetHash()).MessageReference),
+		GetUserLink(g.i.Get(repost.GetHash()).AuthorID),
+		len(g.s.Get(m.Author.ID)),
 		GetUserLink(m.Author.ID),
 	)
 	return msg

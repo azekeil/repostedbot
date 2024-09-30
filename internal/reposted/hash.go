@@ -25,7 +25,7 @@ func hashImageFromURL(url string) (*goimagehash.ImageHash, error) {
 }
 
 func findRepost(hashMap ImgHashPost, hash *goimagehash.ImageHash, distance int) (*goimagehash.ImageHash, error) {
-	for h := range hashMap {
+	for h := range hashMap.Iter() {
 		loopHash := goimagehash.NewImageHash(h, goimagehash.AHash)
 		d, err := hash.Distance(loopHash)
 		if err != nil {

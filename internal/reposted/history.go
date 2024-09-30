@@ -8,9 +8,9 @@ import (
 
 // CatchUp with the last 100 (max) messages since the last processed post in each channel
 func CatchUp(s *discordgo.Session) error {
-	for guildID, lpGuild := range LastPosts {
+	for guildID, lpGuild := range LastPosts.Iter() {
 		g := newGuild(guildID)
-		for channelID, messageID := range lpGuild {
+		for channelID, messageID := range lpGuild.Iter() {
 			messages, err := s.ChannelMessages(channelID, 100, "", messageID, "")
 			if err != nil {
 				return err
