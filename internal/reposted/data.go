@@ -26,7 +26,7 @@ type (
 )
 
 var (
-	ImgHashes = SafeMap[string, ImgHashPost]{}
-	Scores    = SafeMap[string, ScorePosts]{}
-	LastPosts = SafeMap[string, LastPost]{}
+	ImgHashes = NewSafeMap[string, ImgHashPost]()
+	Scores    = NewSafeMap[string, ScorePosts]()
+	LastPosts = NewSafeMap[string, LastPost]()
 )

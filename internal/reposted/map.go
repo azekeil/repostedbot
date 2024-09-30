@@ -10,12 +10,12 @@ type SafeMap[K comparable, V any] struct {
 	l *sync.RWMutex
 }
 
-// func NewSafeMap[K comparable, V any]() *SafeMap[K, V] {
-// 	return &SafeMap[K, V]{
-// 		m: map[K]V{},
-// 		l: &sync.RWMutex{},
-// 	}
-// }
+func NewSafeMap[K comparable, V any]() *SafeMap[K, V] {
+	return &SafeMap[K, V]{
+		m: map[K]V{},
+		l: &sync.RWMutex{},
+	}
+}
 
 func (s *SafeMap[K, V]) Get(key K) V {
 	s.l.RLock()

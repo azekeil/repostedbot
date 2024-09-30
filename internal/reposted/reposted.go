@@ -18,13 +18,13 @@ type guild struct {
 func newGuild(guildID string) *guild {
 	// Ensure this guild's hashes are initialized
 	if ImgHashes.Get(guildID) == nil {
-		ImgHashes.Set(guildID, &SafeMap[uint64, *Post]{})
+		ImgHashes.Set(guildID, NewSafeMap[uint64, *Post]())
 	}
 	if Scores.Get(guildID) == nil {
-		Scores.Set(guildID, &SafeMap[string, []*Score]{})
+		Scores.Set(guildID, NewSafeMap[string, []*Score]())
 	}
 	if LastPosts.Get(guildID) == nil {
-		LastPosts.Set(guildID, &SafeMap[string, string]{})
+		LastPosts.Set(guildID, NewSafeMap[string, string]())
 	}
 	return &guild{
 		i: ImgHashes.Get(guildID),
