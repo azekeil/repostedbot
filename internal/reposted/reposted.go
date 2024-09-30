@@ -45,8 +45,8 @@ func MessageHandler(s *discordgo.Session, m *discordgo.MessageCreate) (msg strin
 
 func (g *guild) processMessage(s *discordgo.Session, m *discordgo.Message, msg string) string {
 	// If the content is just a URL, process it.
-	u, err := url.Parse(m.Content)
-	if err != nil {
+	u, err := url.ParseRequestURI(m.Content)
+	if err == nil {
 		msg = g.processImage(s, m, 0, u.String(), msg)
 	}
 	// Now do any attachments.
@@ -66,8 +66,10 @@ func (g *guild) processImage(s *discordgo.Session, m *discordgo.Message, attachm
 		// And add something to the message to return.
 		msg += g.addRepostToMsg(m, attachmentNum, msg, original)
 	}
-	// Now add post to DB
-	g.addToDB(s, m, imgHash)
+	if imgHash != nil {
+		// Now add post to DB
+		g.addToDB(s, m, imgHash)
+	}
 	return msg
 }
 
@@ -119,10 +121,11 @@ func (g *guild) hashURL(m *discordgo.Message, URL string) (imgHash *goimagehash.
 	imgHash, err := hashImageFromURL(URL)
 	if err != nil {
 		log.Printf("failed to process %s: %v", m.ID, err)
+		return
 	}
 	original, err = findRepost(g.i, imgHash, 2)
 	if err != nil {
 		log.Printf("failed to findRepost: %v", err)
 	}
-	return imgHash, original
+	return
 }

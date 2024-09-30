@@ -9,6 +9,10 @@ import (
 )
 
 func GetMessageLink(m *discordgo.MessageReference) string {
+	if m.GuildID == "" || m.ChannelID == "" || m.MessageID == "" {
+		log.Printf("Bad MessageReference: %+v", m)
+		return ""
+	}
 	return fmt.Sprintf("https://discord.com/channels/%s/%s/%s", m.GuildID, m.ChannelID, m.MessageID)
 }
 
@@ -44,4 +48,15 @@ func GetGuildName(s *discordgo.Session, guildID string) string {
 		return guildID
 	}
 	return guild.Name
+}
+
+func EnsureGuildID(s *discordgo.Session, m *discordgo.Message) {
+	if m.GuildID == "" {
+		c, err := s.Channel(m.ChannelID)
+		if err != nil {
+			log.Fatalf("unable to get GuildID from Channel: %v", err)
+		}
+		m.GuildID = c.GuildID
+		log.Printf("Added Guild %s to Message %s in Channel %s", m.GuildID, m.ID, m.ChannelID)
+	}
 }

@@ -24,6 +24,8 @@ func CatchUp(s *discordgo.Session) error {
 // bulkProcess processes a list of messages into the database and updates the lastpost
 func (g *guild) bulkProcess(s *discordgo.Session, messages []*discordgo.Message) {
 	for _, m := range messages {
+		// Workaround: Ensure message has a GuildID
+		EnsureGuildID(s, m)
 		g.processMessage(s, m, "")
 	}
 	if err := SaveDB(); err != nil {

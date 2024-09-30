@@ -20,6 +20,8 @@ func MakeMessageCreateHandlerFunc(help self.DocFuncs) func(*discordgo.Session, *
 			return
 		}
 
+		// Workaround: Ensure message has a GuildID
+		reposted.EnsureGuildID(s, m.Message)
 		msg, msgErr := reposted.MessageHandler(s, m)
 		if msg == "" {
 			msg, msgErr = handleMessageCommands(s, m, help, c)

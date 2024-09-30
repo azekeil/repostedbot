@@ -60,11 +60,11 @@ func (c *Command) Scores(s *discordgo.Session, m *discordgo.MessageCreate, help 
 // addhistory: add posts to repostedbot's database for tracking.
 //
 // To add history for up to 100 (max) latest messages:
-// !rp addhistory 100
+// `!rp addhistory 100`
 // To add history for up to 100 (max) messages before a certain message:
-// !rp addhistory 100 before <message link>
+// `!rp addhistory 100 before <message link>`
 // To add history for up to 100 (max) messages after a certain message:
-// !rp addhistory 100 after <message link>
+// `!rp addhistory 100 after <message link>`
 func (c *Command) Addhistory(s *discordgo.Session, m *discordgo.MessageCreate, help self.DocFuncs) {
 	all := strings.Fields(m.Content)
 	if len(all) != 3 && len(all) != 5 {
