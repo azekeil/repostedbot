@@ -2,5 +2,6 @@
 config.yaml
 *.db*
 
-# Debug files
+# Binary/Debug files
+./repostedbot
 __debug_*
