@@ -12,8 +12,10 @@ var DBFiles = map[string]any{
 	"repostedLastPost.db": &LastPosts,
 }
 
-var SaveMutex = sync.Mutex{}
-var LoadMutex = sync.Mutex{}
+var (
+	SaveMutex = sync.Mutex{}
+	LoadMutex = sync.Mutex{}
+)
 
 func SaveDB() error {
 	SaveMutex.Lock()
@@ -66,6 +68,20 @@ func LoadDB() error {
 		if err != nil {
 			return err
 		}
+	}
+	// Fix nil mutexes on the maps. Unfortunately can't do this on data as we can't
+	// assign a partial generic to the data type.
+	ImgHashes.EnsureMutex()
+	for _, m := range ImgHashes.Iter() {
+		m.EnsureMutex()
+	}
+	Scores.EnsureMutex()
+	for _, m := range Scores.Iter() {
+		m.EnsureMutex()
+	}
+	LastPosts.EnsureMutex()
+	for _, m := range LastPosts.Iter() {
+		m.EnsureMutex()
 	}
 	return nil
 }
