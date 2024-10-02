@@ -1,3 +1,6 @@
 # Personal config/dbs
 config.yaml
 *.db*
+
+# Debug files
+__debug_*
