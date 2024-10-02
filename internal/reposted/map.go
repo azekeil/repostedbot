@@ -2,43 +2,42 @@ package reposted
 
 import (
 	"iter"
-	"sync"
 )
 
 type SafeMap[K comparable, V any] struct {
 	M map[K]V
-	l *sync.RWMutex
+	l *SafeRWMutex
 }
 
 func NewSafeMap[K comparable, V any]() *SafeMap[K, V] {
 	return &SafeMap[K, V]{
 		M: map[K]V{},
-		l: &sync.RWMutex{},
+		l: &SafeRWMutex{},
 	}
 }
 
 func (s *SafeMap[K, V]) Get(key K) V {
-	// s.l.RLock()
-	// defer s.l.RUnlock()
+	s.l.SRLock()
+	defer s.l.RUnlock()
 	return s.M[key]
 }
 
 func (s *SafeMap[K, V]) Get2(key K) (V, bool) {
-	// s.l.RLock()
-	// defer s.l.RUnlock()
+	s.l.SRLock()
+	defer s.l.RUnlock()
 	v, ok := s.M[key]
 	return v, ok
 }
 
 func (s *SafeMap[K, V]) Set(key K, value V) {
-	s.l.Lock()
+	s.l.SLock()
 	s.M[key] = value
 	s.l.Unlock()
 }
 
 func (s *SafeMap[K, V]) Len() int {
-	// s.l.RLock()
-	// defer s.l.RUnlock()
+	s.l.SRLock()
+	defer s.l.RUnlock()
 	return len(s.M)
 }
 
